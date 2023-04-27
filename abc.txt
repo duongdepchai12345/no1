@@ -1,0 +1,254 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+
+local Window = OrionLib:MakeWindow({Name = "Title of the library", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+
+local AutoBountlklkab = Window:MakeTab({
+    Name = "Auto Bounty",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+click = false
+ahfg = false
+killpl = nil
+selectedmelee = nil
+selectedfruit = nil
+Players = {}
+for i,v in pairs(game.Players:GetChildren()) do
+    table.insert(Players ,v.Name)
+end
+
+local sl = AutoBountlklkab:AddDropdown({
+    Name = "Select Player",
+    Options = Players,
+    Callback = function(selected)
+        killpl = game.Players:FindFirstChild(selected)
+    end
+})
+
+AutoBountlklkab:AddButton({
+    Name = "Refresh Player",
+    Callback = function()
+        Players = {}
+        for i,v in pairs(game.Players:GetChildren()) do
+            table.insert(Players ,v.Name)
+        end
+        sl:Refresh(Players, true)
+    end    
+})
+
+AutoBountlklkab:AddToggle({
+    Name = "Auto Bounty",
+    Default = false,
+    Callback = function(Value)
+        ahfg = Value
+    end    
+})
+
+local currentAngle = 0
+local orbitSpeed = 80
+
+local meleeUsed = true
+local fruitUsed = false
+
+local meleeskilldelay = 1
+local fruitskilldelay = 1
+
+local MeleeSkills = {"Z", "X", "C"}
+local meleetimehold = {
+    ["Z"] = 2,
+    ["X"] = 0.1,
+    ["C"] = 0.1
+}
+local FruitSkills = {"Z", "X", "C", "V"}
+local fruittimehold = {
+    ["Z"] = 0.1,
+    ["X"] = 0.1,
+    ["C"] = 0.1,
+    ["V"] = 0.1
+}
+
+local meleedelay = 0
+local fruitdelay = 0
+
+local selectedmeleeskill = nil
+local selectedfruitskill = nil
+
+local timeholds = {
+    ["Melee"] = meleetimehold,
+    ["Fruit"] = fruittimehold
+}
+
+function onUpdate()
+    if ahfg then
+        if killpl ~= nil then
+            if selectedmeleeskill == nil then
+                selectedmeleeskill = MeleeSkills[math.random(1, #MeleeSkills)]
+            end
+            -- Lock the selected fruit skill
+            if selectedfruitskill == nil then
+                selectedfruitskill = FruitSkills[math.random(1, #FruitSkills)]
+            end
+
+            killpl.Character.HumanoidRootPart.Size = Vector3.new(70,70,70)
+            strafe(killpl)
+            if not game.Players.LocalPlayer.PlayerGui.ScreenGui:FindFirstChild("ImageLabel") then
+                game:GetService('VirtualUser'):CaptureController()
+                game:GetService('VirtualUser'):SetKeyDown('0x65')
+                wait(2)
+                game:GetService('VirtualUser'):SetKeyUp('0x65')
+            end
+            local distance = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - killpl.Character.HumanoidRootPart.Position).magnitude
+            if distance <= 30 then
+                if not meleeUsed then
+                    if meleedelay == 0 then
+                        meleeUsed = true
+                        fruitUsed = false
+                        fruitdelay = fruitskilldelay
+                        return
+                    end
+                    EquipWeapon(selectedmelee)
+                    if selectedmeleeskill ~= nil then
+                        useSkillOn(selectedmeleeskill,killpl,timeholds["Melee"][selectedmeleeskill], selectedmelee)
+                        selectedmeleeskill = nil
+                    end
+                end
+                if not fruitUsed then 
+                    if fruitdelay == 0 then
+                        meleeUsed = false
+                        fruitUsed = true
+                        meleedelay = meleeskilldelay
+                        return
+                    end
+                    click = false
+                    EquipWeapon(selectedfruit)
+                    skill = b
+                    if selectedfruitskill ~= nil then
+                        useSkillOn(selectedfruitskill,killpl,timeholds["Fruit"][selectedfruitskill], selectedfruit)
+                        selectedfruitskill = nil
+                    end
+                end
+            end
+        end
+    else
+        click = false
+    end
+end
+
+spawn(function()
+    while wait(1) do
+        if meleedelay > 0 then
+            meleedelay = meleedelay - 1
+        elseif meleedelay == 0 then
+            meleedelay = 0
+        end
+        if fruitdelay > 0 then
+            fruitdelay = fruitdelay - 1
+        elseif fruitdelay == 0 then
+            fruitdelay = 0
+        end
+    end
+end)
+
+spawn(function()
+    while true do
+        if killpl ~= nil then
+            local gg = getrawmetatable(game)
+            local old = gg.__namecall
+            setreadonly(gg,false)
+            gg.__namecall = newcclosure(function(...)
+                local method = getnamecallmethod()
+                local args = {...}
+                if tostring(method) == "FireServer" then
+                    if tostring(args[1]) == "RemoteEvent" then
+                        if tostring(args[2]) ~= "true" and tostring(args[2]) ~= "false" then
+                            args[2] = killpl.Character.HumanoidRootPart.Position
+                            return old(unpack(args))
+                        end
+                    end
+                end
+                return old(...)
+            end)
+        end
+        wait(0.00001)
+    end
+end)
+
+function strafe(target)
+    local localPlayer = game.Players.LocalPlayer
+    local rootPart = localPlayer.Character.HumanoidRootPart
+    local targetRootPart = target.Character.HumanoidRootPart 
+    local distance = (targetRootPart.Position - rootPart.Position).magnitude
+    if distance >= 3000 then
+        rootPart.CFrame = targetRootPart.CFrame -- set the player's CFrame to be slightly above the target player's CFrame
+        localPlayer.Character.Humanoid.Health = 0
+        wait(1)
+    end
+    Distance = (targetRootPart.Position - rootPart.Position).Magnitude
+      if Distance < 250 then
+          Speed = 1000
+      elseif Distance < 500 then
+          Speed = 500
+      elseif Distance < 1000 then
+          Speed = 500
+      elseif Distance >= 1000 and Distance <= 2999 then
+          Speed = 500
+      end
+      game:GetService("TweenService"):Create(
+          rootPart,
+          TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
+          {CFrame = targetRootPart.CFrame + Vector3.new(15,15,0)}
+      ):Play()
+end
+
+function useSkillOn(skill, target, hold, tool)
+    local localPlayer = game.Players.LocalPlayer
+    local targetRootPart =  target.Character.HumanoidRootPart
+    localPlayer.Character.HumanoidRootPart.Transparency = 1
+    spawn(function()
+        pcall(function()
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode[skill], false, game)
+            task.wait(hold)
+            game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode[skill], false, game)
+            waiit(.1)
+        end)
+    end)
+end
+
+function EquipWeapon(ToolSe)
+    if game.Players.LocalPlayer.Backpack:FindFirstChild(ToolSe) then
+        local tool = game.Players.LocalPlayer.Backpack:FindFirstChild(ToolSe)
+        game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
+    end
+end
+
+spawn(function()
+    pcall(function()
+        while wait(.1) do
+            if not game.Players.LocalPlayer.Character:FindFirstChild("HasBuso") then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
+            end
+
+            for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do  
+                if v:IsA("Tool") then
+                    if v.ToolTip == "Melee" then
+                        selectedmelee = v.Name
+                    end
+                    if v.ToolTip == "Blox Fruit" then
+                        selectedfruit = v.Name
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+game:GetService("RunService").Heartbeat:Connect(onUpdate)
+
+while task.wait() do
+    if click then
+        game:GetService'VirtualUser':CaptureController()
+        game:GetService'VirtualUser':Button1Down(Vector2.new(1280, 672))
+	end
+end
+
+OrionLib:Init()
