@@ -1,0 +1,12 @@
+spawn(
+    function()
+        while true do
+            for i, v in pairs(game:GetService("Players"):GetPlayers()) do
+                if v.Name ~= game.Players.LocalPlayer.Name then
+                    v.Character.HumanoidRootPart.Size = Vector3.new(30,30,30)
+                end
+            end
+            wait()
+        end
+    end
+)
