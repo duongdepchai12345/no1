@@ -61,7 +61,7 @@ local meleetimehold = {
 }
 local FruitSkills = {"Z", "X", "C", "V"}
 local fruittimehold = {
-    ["Z"] = 0.1,
+    ["Z"] = 2,
     ["X"] = 0.1,
     ["C"] = 0.1,
     ["V"] = 0.1
