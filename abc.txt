@@ -132,6 +132,7 @@ function onUpdate()
     else
         click = false
     end
+wait()
 end
 
 spawn(function()
